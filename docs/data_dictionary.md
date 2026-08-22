@@ -1,0 +1,2 @@
+The feature importance analysis shows that the student's previous number of academic failures and number of absences are the most influential features in predicting student performance categories. Social activity (goout), parental education (Medu and Fedu), health, age, alcohol consumption (Walc and Dalc), free time, and study time also contribute to the model's predictions. This suggests that both academic history and student lifestyle factors play an important role in the prediction of academic performance.
+
