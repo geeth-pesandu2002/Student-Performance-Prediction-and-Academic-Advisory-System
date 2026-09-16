@@ -1,0 +1,6 @@
+Model comparison on the deterministic held-out split
+
+Logistic Regression: 0.472
+Decision Tree: 0.417
+Random Forest: 0.625
+Selected model: Random Forest

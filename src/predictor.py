@@ -7,7 +7,7 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Path to the saved model
-MODEL_PATH = PROJECT_ROOT / "models" / "random_forest_pipeline.joblib"
+MODEL_PATH = PROJECT_ROOT / "models" / "sri_lankan_university_pipeline.joblib"
 
 
 def load_model():
@@ -76,3 +76,44 @@ def predict_student_performance(student_data):
     prediction = model.predict(student_data)
 
     return prediction[0]
+
+
+def predict_student_with_probabilities(student_data):
+    """Return the prediction and model probabilities for one student."""
+    model = load_model()
+
+    if isinstance(student_data, dict):
+        student_data = pd.DataFrame([student_data])
+    elif not isinstance(student_data, pd.DataFrame):
+        raise TypeError("student_data must be a dict or pandas DataFrame.")
+
+    if student_data.empty:
+        raise ValueError("student_data cannot be empty.")
+
+    required_features = list(getattr(model, "feature_names_in_", []))
+    if not required_features:
+        required_features = list(
+            model.named_steps["preprocessor"].feature_names_in_
+        )
+
+    missing_features = [
+        feature for feature in required_features
+        if feature not in student_data.columns
+    ]
+    if missing_features:
+        raise ValueError(
+            "Missing required input features: "
+            + ", ".join(missing_features)
+        )
+
+    student_data = student_data[required_features].copy()
+    if student_data.isnull().any().any():
+        raise ValueError(
+            "Input contains missing values. Please fill all required fields."
+        )
+
+    prediction = model.predict(student_data)[0]
+    probabilities = model.predict_proba(student_data)[0]
+    probability_by_class = dict(zip(model.classes_, probabilities))
+
+    return prediction, probability_by_class
