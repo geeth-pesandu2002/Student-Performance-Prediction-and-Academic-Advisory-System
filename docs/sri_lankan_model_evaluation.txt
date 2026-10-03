@@ -13,3 +13,44 @@ High Performance       0.67      0.55      0.60        11
         accuracy                           0.62        72
        macro avg       0.60      0.59      0.59        72
     weighted avg       0.63      0.62      0.63        72
+
+
+
+
+========================================================================
+DATASET LIMITATIONS AND METHODOLOGY NOTES
+========================================================================
+
+1. SYNTHETIC DATA LIMITATIONS:
+   - This dataset contains 360 SIMULATED records, not real student data.
+   - Generated for assignment development purposes only.
+   - Patterns may not perfectly reflect real-world university student performance.
+
+2. SAMPLE SIZE & IMBALANCE:
+   - 360 records is relatively small for robust machine learning.
+   - Class imbalance exists: "Average" (221) >> "At Risk" (84) > "High Performance" (55).
+   - Mitigation: We used `stratify=y` in train_test_split to ensure the model sees a proportional representation of each class during training and testing.
+
+3. MODEL & PREPROCESSING METHODOLOGY:
+   - We used a Scikit-Learn Pipeline to ensure robust preprocessing.
+   - Categorical features (e.g., Faculty, Programme) were converted using OneHotEncoder.
+   - Numeric features were standardized using StandardScaler.
+   - A RandomForestClassifier was used for its ability to handle non-linear relationships and provide feature importance.
+
+4. FEATURE LIMITATIONS:
+   - The current features miss important real-world factors such as:
+     * Socioeconomic background
+     * Mental health and wellbeing nuances
+     * Specific module difficulty levels
+     * Quality of teaching or tutoring
+
+5. ETHICAL & DEPLOYMENT CONSIDERATIONS:
+   - This model should be used strictly as an ADVISORY tool, not a definitive assessment.
+   - Human oversight (academic advisors) is required before any intervention.
+   - If deployed with real data, fairness and bias audits must be conducted.
+
+6. RECOMMENDATIONS FOR FUTURE WORK:
+   - Replace synthetic data with anonymized, real university records (1000+ samples).
+   - Apply advanced techniques like SMOTE if class imbalance remains an issue with real data.
+   - Incorporate advanced models (e.g., XGBoost) and hyperparameter tuning.
+========================================================================
