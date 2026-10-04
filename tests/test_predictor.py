@@ -9,21 +9,25 @@ from src.predictor import (
 class TestPredictor(unittest.TestCase):
     def setUp(self):
         self.valid_student = {
-            "academic_year": 2, "semester": 1, "faculty": "Computing",
-            "programme": "Computer Science", "previous_gpa": 2.6,
-            "attendance_percentage": 82, "study_hours_per_week": 10,
-            "failed_modules": 0, "assignment_completion_percentage": 78,
-            "assessment_average_percentage": 58,
-            "lecture_participation_percentage": 78,
-            "tutorial_participation": "yes", "lms_active": "yes",
-            "internet_access": "yes", "financial_work_pressure": "no",
-            "wellbeing_rating": 3,
-        }
-        self.at_risk_student = {
             "academic_year": 2,
             "semester": 1,
             "faculty": "Computing",
             "programme": "Computer Science",
+            "previous_gpa": 2.6,
+            "attendance_percentage": 82,
+            "study_hours_per_week": 10,
+            "failed_modules": 0,
+            "assignment_completion_percentage": 78,
+            "assessment_average_percentage": 58,
+            "lecture_participation_percentage": 78,
+            "tutorial_participation": "yes",
+            "lms_active": "yes",
+            "internet_access": "yes",
+            "financial_work_pressure": "no",
+            "wellbeing_rating": 3,
+        }
+        self.at_risk_student = {
+            **self.valid_student,
             "previous_gpa": 1.7,
             "attendance_percentage": 62,
             "study_hours_per_week": 5,
@@ -38,30 +42,22 @@ class TestPredictor(unittest.TestCase):
             "wellbeing_rating": 2,
         }
         self.high_performance_student = {
+            **self.valid_student,
             "academic_year": 3,
-            "semester": 1,
             "faculty": "Engineering",
             "programme": "Engineering",
             "previous_gpa": 3.5,
             "attendance_percentage": 94,
             "study_hours_per_week": 18,
-            "failed_modules": 0,
             "assignment_completion_percentage": 96,
             "assessment_average_percentage": 82,
             "lecture_participation_percentage": 92,
-            "tutorial_participation": "yes",
-            "lms_active": "yes",
-            "internet_access": "yes",
-            "financial_work_pressure": "no",
             "wellbeing_rating": 4,
         }
 
     def test_valid_prediction_returns_known_label(self):
         prediction = predict_student_performance(self.valid_student)
-        self.assertIn(
-            prediction,
-            {"At Risk", "Average", "High Performance"},
-        )
+        self.assertIn(prediction, {"At Risk", "Average", "High Performance"})
 
         predicted_label, probabilities = predict_student_with_probabilities(
             self.valid_student
