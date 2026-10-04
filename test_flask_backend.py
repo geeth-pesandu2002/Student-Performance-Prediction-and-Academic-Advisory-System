@@ -4,7 +4,6 @@ Run this to verify the backend handles different student types correctly
 """
  
 import requests
-import json
  
 BASE_URL = "http://localhost:5000"
  
@@ -44,49 +43,36 @@ students = [
     ("High Performer", student_high_performer)
 ]
  
-print("=" * 70)
-print("🧪 FLASK BACKEND TEST - Multiple Student Profiles")
-print("=" * 70)
- 
-for profile_name, student_data in students:
-    print(f"\n{'=' * 70}")
-    print(f"Testing: {profile_name}")
-    print(f"{'=' * 70}")
-    
-    try:
-        # Test prediction endpoint
-        response = requests.post(f"{BASE_URL}/api/predict", json=student_data)
-        
-        print(f"✅ Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ Prediction: {data['prediction']}")
-            print(f"✅ Success Probability: {data['success_probability']}%")
-            print(f"✅ Summary: {data['summary'][:100]}...")
-            
-            # Show analysis
-            analysis = data['analysis']
-            print(f"\n📊 Analysis:")
-            print(f"   - Critical Issues: {analysis['critical_issues']}")
-            print(f"   - Warnings: {analysis['warnings']}")
-            print(f"   - Strengths: {analysis['strengths']}")
-            print(f"   - Opportunities: {analysis['opportunities']}")
-            
-            # Show top priorities
-            if 'top_priorities' in data and data['top_priorities']:
-                print(f"\n🎯 Top Priorities:")
-                for i, p in enumerate(data['top_priorities'][:2], 1):
-                    print(f"   {i}. {p['action']}")
-                    print(f"      Impact: +{p['impact_points']} points")
-                    print(f"      Success: {p['success_probability']}%")
-        else:
-            print(f"❌ Error: {response.json()}")
-    
-    except Exception as e:
-        print(f"❌ Request failed: {str(e)}")
-        print("   Make sure Flask server is running: python app.py")
- 
-print(f"\n{'=' * 70}")
-print("✅ TEST COMPLETE")
-print(f"{'=' * 70}\n")
+def run_smoke_tests():
+    """Exercise the running Flask server with representative profiles."""
+    print("=" * 70)
+    print("FLASK BACKEND TEST - Multiple Student Profiles")
+    print("=" * 70)
+
+    for profile_name, student_data in students:
+        print(f"\n{'=' * 70}")
+        print(f"Testing: {profile_name}")
+        print(f"{'=' * 70}")
+
+        try:
+            response = requests.post(
+                f"{BASE_URL}/api/predict",
+                json=student_data,
+                timeout=10,
+            )
+            print(f"Status Code: {response.status_code}")
+
+            if response.status_code == 200:
+                data = response.json()
+                print(f"Prediction: {data['prediction']}")
+                print(f"Success Probability: {data['success_probability']}%")
+                print(f"Summary: {data['summary'][:100]}...")
+            else:
+                print(f"Error: {response.json()}")
+        except requests.RequestException as error:
+            print(f"Request failed: {error}")
+            print("Make sure Flask server is running: python app.py")
+
+
+if __name__ == "__main__":
+    run_smoke_tests()
