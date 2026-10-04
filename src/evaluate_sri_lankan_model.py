@@ -35,13 +35,53 @@ def evaluate_model():
     model = joblib.load(MODEL_PATH)
     predictions = model.predict(test_features)
     report = classification_report(test_target, predictions, zero_division=0)
+    methodology_notes = """
+
+
+========================================================================
+DATASET LIMITATIONS AND METHODOLOGY NOTES
+========================================================================
+
+1. SYNTHETIC DATA LIMITATIONS:
+    - This dataset contains 360 simulated records, not real student data.
+    - It was generated for assignment development purposes only.
+    - Its patterns may not represent real-world university student performance.
+
+2. SAMPLE SIZE AND CLASS IMBALANCE:
+    - 360 records is relatively small for robust machine learning.
+    - Class imbalance exists: Average (221) > At Risk (84) > High Performance (55).
+    - We used stratified splitting so the training and held-out sets preserve approximately the same class proportions.
+    - Stratification does not remove class imbalance; it remains a limitation of this evaluation.
+
+3. MODEL AND PREPROCESSING METHODOLOGY:
+    - A scikit-learn Pipeline applies preprocessing consistently before prediction.
+    - Categorical features use OneHotEncoder.
+    - Numeric features use StandardScaler.
+    - The selected Random Forest model can provide feature-importance values for transformed features.
+    - The confusion matrix and classification metrics are calculated on the deterministic held-out set of 72 records.
+    - Feature importance indicates model reliance, not causation.
+
+4. FEATURE LIMITATIONS:
+    - Current features do not fully capture socioeconomic background, mental-health context, module difficulty, or teaching quality.
+
+5. ETHICAL AND DEPLOYMENT CONSIDERATIONS:
+    - This model is an advisory prototype, not a definitive assessment.
+    - Academic-advisor oversight is required before intervention.
+    - Approved anonymized real data and fairness audits are required before deployment.
+
+6. RECOMMENDATIONS FOR FUTURE WORK:
+    - Replace synthetic data with approved anonymized university records.
+    - Re-evaluate class-balance methods such as class weighting or SMOTE only after inspecting real data.
+    - Compare additional models and tune parameters using a reproducible validation strategy.
+"""
     output = (
         "Sri Lankan university model evaluation\n"
         "========================================\n"
         f"Records: {len(data)}\n"
         f"Held-out records: {len(test_target)}\n"
         f"Accuracy: {accuracy_score(test_target, predictions):.3f}\n\n"
-        f"{report}"
+                f"{report}"
+                f"{methodology_notes}"
     )
     REPORT_PATH.write_text(output, encoding="utf-8")
     return output
