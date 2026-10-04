@@ -27,10 +27,7 @@ class TestPredictor(unittest.TestCase):
             "wellbeing_rating": 3,
         }
         self.at_risk_student = {
-            "academic_year": 2,
-            "semester": 1,
-            "faculty": "Computing",
-            "programme": "Computer Science",
+            **self.valid_student,
             "previous_gpa": 1.7,
             "attendance_percentage": 62,
             "study_hours_per_week": 5,
@@ -44,23 +41,17 @@ class TestPredictor(unittest.TestCase):
             "financial_work_pressure": "yes",
             "wellbeing_rating": 2,
         }
-        self.average_student = self.valid_student.copy()
         self.high_performance_student = {
+            **self.valid_student,
             "academic_year": 3,
-            "semester": 1,
             "faculty": "Engineering",
             "programme": "Engineering",
             "previous_gpa": 3.5,
             "attendance_percentage": 94,
             "study_hours_per_week": 18,
-            "failed_modules": 0,
             "assignment_completion_percentage": 96,
             "assessment_average_percentage": 82,
             "lecture_participation_percentage": 92,
-            "tutorial_participation": "yes",
-            "lms_active": "yes",
-            "internet_access": "yes",
-            "financial_work_pressure": "no",
             "wellbeing_rating": 4,
         }
 
@@ -89,29 +80,22 @@ class TestPredictor(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     predictor({})
 
-    def test_invalid_input_raises_error(self):
+    def test_invalid_input_raises_type_error(self):
         with self.assertRaises(TypeError):
             predict_student_performance(["not", "a", "student"])
 
         with self.assertRaises(TypeError):
             predict_student_with_probabilities("not a dictionary")
 
-    def test_three_prediction_categories(self):
-        test_cases = [
+    def test_profiles_return_valid_predictions(self):
+        labels = {"At Risk", "Average", "High Performance"}
+        for student in (
             self.at_risk_student,
-            self.average_student,
+            self.valid_student,
             self.high_performance_student,
-        ]
-
-        predictions = {
-            predict_student_performance(student)
-            for student in test_cases
-        }
-
-        self.assertTrue(
-            predictions.issubset({"At Risk", "Average", "High Performance"})
-        )
-        self.assertTrue(predictions)
+        ):
+            with self.subTest(student=student):
+                self.assertIn(predict_student_performance(student), labels)
 
 
 if __name__ == "__main__":
