@@ -1,0 +1,88 @@
+================================================================================
+CANDIDATE MODEL COMPARISON & SELECTION REPORT
+Author: MFM Amhar (Machine Learning Model Development)
+================================================================================
+
+1. EVALUATION SETUP & EXPERIMENTAL PROTOCOL
+--------------------------------------------------------------------------------
+- Total Dataset Size:       360 records
+- Training Partition (80%): 288 records
+- Held-Out Test Set (20%):  72 records
+- Splitting Strategy:       Stratified train-test split (random_state=42)
+- Target Label:             Performance Category (derived from semester_gpa):
+                            * At Risk:          semester_gpa < 2.0
+                            * Average:          2.0 <= semester_gpa < 3.0
+                            * High Performance: semester_gpa >= 3.0
+
+Class Distribution Across Partitions:
+  * Training Set:  {'Average': 177, 'At Risk': 67, 'High Performance': 44}
+  * Test Set:      {'Average': 44, 'At Risk': 17, 'High Performance': 11}
+
+2. CANDIDATE MODEL PERFORMANCE ON HELD-OUT SPLIT
+--------------------------------------------------------------------------------
+  * Logistic Regression   : 0.472 accuracy
+  * Decision Tree         : 0.417 accuracy
+  * Random Forest         : 0.625 accuracy [SELECTED FOR PRODUCTION]
+
+Selected Active Model: Random Forest (Accuracy: 0.625)
+
+3. THEORETICAL ANALYSIS & ALGORITHM COMPARISON
+--------------------------------------------------------------------------------
+A. Logistic Regression (Accuracy: 0.472):
+   - Paradigm: Linear probabilistic classifier utilizing multinomial cross-entropy
+     loss with L2 regularisation.
+   - Characteristics: Assumes monotonic log-odds relationships between features and
+     class boundaries. Computes linear hyperplanes in the transformed feature space.
+   - Limitation: Academic performance exhibits complex non-linear interactions
+     (e.g., high study hours coupled with low attendance or high wellbeing ratings).
+     The linear boundary underfits these multi-feature synergies, leading to lower accuracy.
+
+B. Decision Tree Classifier (Accuracy: 0.417):
+   - Paradigm: Non-parametric recursive binary tree using Gini impurity.
+   - Characteristics: Captures non-linear thresholds and hierarchical feature interactions
+     with high interpretability (max_depth=8, min_samples_split=5).
+   - Limitation: Single decision trees are notoriously high-variance estimators prone to
+     memorizing local noise on smaller datasets (360 samples). Despite regularization
+     via max_depth and min_samples_split, it overfits the training partition and achieves
+     the lowest generalization score (0.417) on unseen test data.
+
+C. Random Forest Classifier (Accuracy: 0.625) [SELECTED]:
+   - Paradigm: Ensemble Bootstrap Aggregation (Bagging) with Random Subspace feature selection.
+   - Characteristics: Constructs 250 diverse decision trees (max_depth=10, min_samples_split=5),
+     each trained on bootstrap replacement samples with random feature subsets at every split.
+   - Advantage: The ensemble voting mechanism substantially reduces variance without inflating
+     bias. It successfully models intricate interactions among attendance, study hours, and
+     continuous assessments while remaining robust against individual noisy samples.
+   - Result: Substantially outperforms both single Decision Tree (+20.8%) and Logistic
+     Regression (+15.3%), making it the superior operational candidate.
+
+4. PREPROCESSING & PIPELINE INTEGRATION
+--------------------------------------------------------------------------------
+- Numeric Features (10): academic_year, semester, previous_gpa, attendance_percentage,
+  study_hours_per_week, failed_modules, assignment_completion_percentage,
+  assessment_average_percentage, lecture_participation_percentage, wellbeing_rating.
+  -> Processed via StandardScaler (mean zero, unit variance).
+- Categorical Features (6): faculty, programme, tutorial_participation, lms_active,
+  internet_access, financial_work_pressure.
+  -> Processed via OneHotEncoder(handle_unknown='ignore').
+- Leakage Prevention: ColumnTransformer is fitted strictly on train_features, ensuring
+  zero information spillover from the held-out test split.
+
+5. MODEL SAVING & PRODUCTION DEPLOYMENT
+--------------------------------------------------------------------------------
+- Target Artifact Path: sri_lankan_university_pipeline.joblib
+- Persistence Method:   joblib.dump(selected_pipeline, ...)
+- Architectural Benefit: Serializing the complete scikit-learn Pipeline couples the fitted
+  preprocessor with the estimator weights. In src/predictor.py, incoming raw dictionary
+  payloads undergo exact identical transformations without manual transformation scripts,
+  eliminating training-serving skew.
+
+6. REPRODUCIBILITY INSTRUCTIONS
+--------------------------------------------------------------------------------
+- Ensure Python 3.10+ and requirements installed: pip install -r requirement.txt
+- Step 1 (Generate Dataset):  python -m src.generate_synthetic_sri_lankan_data
+- Step 2 (Train & Compare):   python -m src.train_sri_lankan_model
+- Step 3 (Evaluate Metrics):  python -m src.evaluate_sri_lankan_model
+- Deterministic Seeds:        NumPy Generator seed=42, train_test_split random_state=42,
+                              DecisionTree & RandomForest random_state=42.
+================================================================================
