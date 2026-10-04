@@ -1,8 +1,14 @@
+const root = document.documentElement;
 const form = document.getElementById('studentForm');
 const results = document.getElementById('results');
 const emptyState = document.getElementById('emptyState');
 const loadingState = document.getElementById('loadingState');
 const errorBox = document.getElementById('errorBox');
+const themeToggle = document.getElementById('themeToggle');
+const progressWrap = document.getElementById('formProgress');
+const progressText = document.getElementById('progressText');
+const progressPercent = document.getElementById('progressPercent');
+const progressFill = document.getElementById('progressFill');
 const numericFields = new Set(['academic_year', 'semester', 'previous_gpa', 'attendance_percentage', 'study_hours_per_week', 'failed_modules', 'assignment_completion_percentage', 'assessment_average_percentage', 'lecture_participation_percentage', 'wellbeing_rating']);
 
 const profiles = {
@@ -11,6 +17,38 @@ const profiles = {
     high: { academic_year: 3, semester: 1, faculty: 'Engineering', programme: 'Engineering', previous_gpa: 3.5, attendance_percentage: 94, study_hours_per_week: 18, failed_modules: 0, assignment_completion_percentage: 96, assessment_average_percentage: 82, lecture_participation_percentage: 92, tutorial_participation: 'yes', lms_active: 'yes', internet_access: 'yes', financial_work_pressure: 'no', wellbeing_rating: 4 }
 };
 
+/* ---------- Dark mode (remembered between visits) ---------- */
+function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀' : '☾';
+}
+
+applyTheme(root.getAttribute('data-theme') || 'light');
+
+themeToggle.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('levelup-theme', next); } catch (error) { /* storage unavailable */ }
+});
+
+/* ---------- Form progress indicator ---------- */
+const formFields = form.querySelectorAll('input, select');
+
+function updateProgress() {
+    const total = formFields.length;
+    const filled = Array.from(formFields).filter((field) => field.value.trim() !== '').length;
+    const percent = Math.round((filled / total) * 100);
+    progressText.textContent = `${filled} of ${total} fields completed`;
+    progressPercent.textContent = `${percent}%`;
+    progressFill.style.width = `${percent}%`;
+    progressWrap.classList.toggle('complete', filled === total);
+}
+
+form.addEventListener('input', updateProgress);
+form.addEventListener('change', updateProgress);
+updateProgress();
+
+/* ---------- Existing behaviour ---------- */
 for (const button of document.querySelectorAll('[data-demo]')) {
     button.addEventListener('click', () => fillForm(profiles[button.dataset.demo]));
 }
@@ -22,12 +60,14 @@ function fillForm(profile) {
         const field = form.elements[name];
         if (field) field.value = value;
     });
+    updateProgress();
     errorBox.classList.remove('show');
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function resetDashboard() {
     form.reset();
+    updateProgress();
     results.hidden = true;
     loadingState.hidden = true;
     emptyState.hidden = false;
@@ -69,9 +109,16 @@ function renderResults(data) {
     badge.textContent = label === 'High Performance' ? '↑' : label === 'Average' ? '→' : '↓';
     badge.className = `result-badge ${label === 'At Risk' ? 'risk' : label === 'Average' ? 'average' : ''}`;
     hero.dataset.state = label;
+
     const modelProbability = Number(data.model_probability || 0);
     document.getElementById('modelProbability').textContent = `${modelProbability.toFixed(1)}%`;
-    document.getElementById('confidenceBar').style.width = `${modelProbability}%`;
+
+ 
+    const bar = document.getElementById('confidenceBar');
+    bar.style.width = '0%';
+    void bar.offsetWidth;
+    bar.style.width = `${Math.min(100, Math.max(0, modelProbability))}%`;
+
     const probabilityLabels = [['At Risk', 'risk'], ['Average', 'average'], ['High Performance', 'high']];
     document.getElementById('classProbabilities').innerHTML = probabilityLabels.map(([name, key]) => `<div>${name}<strong>${Number((data.model_probabilities || {})[name] || 0).toFixed(1)}%</strong></div>`).join('');
     document.getElementById('summaryText').textContent = data.summary || 'No summary returned.';
