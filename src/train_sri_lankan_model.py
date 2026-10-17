@@ -23,7 +23,6 @@ from src.sri_lankan_schema import (
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = PROJECT_ROOT / "data" / "raw" / "sri_lankan_university.csv"
 MODEL_PATH = PROJECT_ROOT / "models" / "sri_lankan_university_pipeline.joblib"
-COMPARISON_PATH = PROJECT_ROOT / "docs" / "model_comparison.txt"
 
 
 def train_model():
@@ -80,10 +79,6 @@ def train_model():
     selected_name = max(scores, key=scores.get)
     selected_pipeline = pipelines[selected_name]
     joblib.dump(selected_pipeline, MODEL_PATH)
-    comparison = ["Model comparison on the deterministic held-out split", ""]
-    comparison.extend(f"{name}: {score:.3f}" for name, score in scores.items())
-    comparison.append(f"Selected model: {selected_name}")
-    COMPARISON_PATH.write_text("\n".join(comparison) + "\n", encoding="utf-8")
     return selected_pipeline
 
 

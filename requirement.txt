@@ -1,6 +1,7 @@
-pandas
-numpy
-matplotlib
-seaborn
+Flask
 jupyter
+joblib
+numpy
+pandas
+requests
 scikit-learn

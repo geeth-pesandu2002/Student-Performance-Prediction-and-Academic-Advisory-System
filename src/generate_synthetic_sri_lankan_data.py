@@ -1,7 +1,4 @@
-"""Generate synthetic university records for assignment development only.
 
-These records are simulated and must never be presented as real student data.
-"""
 
 from pathlib import Path
 
